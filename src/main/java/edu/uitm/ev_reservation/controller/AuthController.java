@@ -3,6 +3,7 @@ package edu.uitm.ev_reservation.controller;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import edu.uitm.ev_reservation.entity.User;
 import edu.uitm.ev_reservation.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -54,4 +57,12 @@ public class AuthController {
         })
         .orElse(Map.of("error", "User not found"));
   }
+
+  @PostMapping("/logout")
+  public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    request.getSession()
+        .invalidate();
+    return ResponseEntity.ok(Map.of("status", "logged out"));
+  }
+
 }
