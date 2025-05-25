@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { api } from '@/lib/network'
 import { Car, ChevronUp, Home, HousePlug, User2, Zap } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
@@ -33,16 +34,20 @@ const items = [
     url: 'vehicles',
     icon: Car,
   },
-  {
-    title: 'EV Stations',
-    url: 'ev-stations',
-    icon: HousePlug,
-  },
 ]
 
 export function AppSidebar() {
-  const { theme } = useTheme()
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const user = useCurrentUser()
+
+  if (user?.isAdmin) {
+    items.push({
+      title: 'EV Stations',
+      url: 'ev-stations',
+      icon: HousePlug,
+    })
+  }
 
   async function handleLogout() {
     const res = await api.post('/auth/logout')
@@ -53,6 +58,15 @@ export function AppSidebar() {
       toast.error('Logout failed. Please try again.')
       console.error('Logout error:', res.data)
     }
+  }
+
+  function navigateProfile() {
+    if (!user) {
+      toast.error('You must be logged in to view your profile.')
+      return
+    }
+
+    navigate(`/profile`)
   }
 
   return (
@@ -93,7 +107,7 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2 /> Username
+                  <User2 /> {user?.name}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -101,7 +115,7 @@ export function AppSidebar() {
                 side="top"
                 className="w-[--radix-popper-anchor-width]"
               >
-                <DropdownMenuItem>
+                <DropdownMenuItem onSelect={navigateProfile}>
                   <span>Account</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={handleLogout}>

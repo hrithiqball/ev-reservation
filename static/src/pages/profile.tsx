@@ -1,3 +1,7 @@
+import { useCurrentUser } from '@/hooks/use-current-user'
+
 export function Profile() {
-  return <div>Profile</div>
+  const user = useCurrentUser()
+
+  return <div>{JSON.stringify(user, null, 2)}</div>
 }

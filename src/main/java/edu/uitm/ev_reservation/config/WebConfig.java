@@ -16,7 +16,9 @@ public class WebConfig {
             .allowedOrigins("http://localhost:5173")
             .allowedMethods("*")
             .allowedHeaders("*")
-            .allowCredentials(true);
+            .exposedHeaders("Set-Cookie")
+            .allowCredentials(true)
+            .maxAge(3600);
       }
     };
   }
