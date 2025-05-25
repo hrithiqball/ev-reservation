@@ -6,6 +6,8 @@ import { EvStations } from '@/pages/ev-stations'
 import { Hero } from '@/pages/hero'
 import { Profile } from '@/pages/profile'
 import { Vehicle } from '@/pages/vehicle'
+import { VehicleCreate } from '@/pages/vehicle-create'
+import { VehicleUpdate } from '@/pages/vehicle-update'
 import { createBrowserRouter } from 'react-router'
 
 const router = createBrowserRouter([
@@ -19,7 +21,14 @@ const router = createBrowserRouter([
     Component: MainLayout,
     children: [
       { path: 'dashboard', Component: Dashboard },
-      { path: 'vehicles', Component: Vehicle },
+      {
+        path: 'vehicles',
+        children: [
+          { index: true, Component: Vehicle },
+          { path: 'create', Component: VehicleCreate },
+          { path: 'update/:id', Component: VehicleUpdate },
+        ],
+      },
       { path: 'ev-stations', Component: EvStations },
       { path: 'profile', Component: Profile },
       { path: '*', Component: Dashboard },
