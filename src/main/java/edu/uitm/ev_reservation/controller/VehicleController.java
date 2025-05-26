@@ -30,7 +30,7 @@ public class VehicleController {
 
   @GetMapping
   public List<Vehicle> getAllVehicles(
-      @RequestParam(value = "ownerId", required = false) Long ownerId) {
+      @RequestParam(required = false) Long ownerId) {
     if (ownerId != null) {
       return vehicleRepository.findByOwnerId(ownerId);
     }
