@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '@/lib/network'
 import { useNavigate } from 'react-router'
+import type { AxiosError } from 'axios'
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -29,6 +30,9 @@ export function LoginForm() {
     onSuccess: () => {
       navigate('/dashboard')
       toast.success('Login successful!')
+    },
+    onError: (error: AxiosError<{ error: string }>) => {
+      toast.error(`${error.response?.data.error}`)
     },
   })
 

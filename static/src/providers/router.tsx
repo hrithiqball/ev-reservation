@@ -3,11 +3,13 @@ import { MainLayout } from '@/layouts/main-layout'
 import { Auth } from '@/pages/auth'
 import { Dashboard } from '@/pages/dashboard'
 import { EvStations } from '@/pages/ev-stations'
+import { EvStationsCreate } from '@/pages/ev-stations-create'
+import { EvStationsUpdate } from '@/pages/ev-stations-update'
 import { Hero } from '@/pages/hero'
 import { Profile } from '@/pages/profile'
-import { Vehicle } from '@/pages/vehicle'
-import { VehicleCreate } from '@/pages/vehicle-create'
-import { VehicleUpdate } from '@/pages/vehicle-update'
+import { Vehicles } from '@/pages/vehicles'
+import { VehiclesCreate } from '@/pages/vehicles-create'
+import { VehiclesUpdate } from '@/pages/vehicles-update'
 import { createBrowserRouter } from 'react-router'
 
 const router = createBrowserRouter([
@@ -24,12 +26,19 @@ const router = createBrowserRouter([
       {
         path: 'vehicles',
         children: [
-          { index: true, Component: Vehicle },
-          { path: 'create', Component: VehicleCreate },
-          { path: 'update/:id', Component: VehicleUpdate },
+          { index: true, Component: Vehicles },
+          { path: 'create', Component: VehiclesCreate },
+          { path: 'update/:id', Component: VehiclesUpdate },
         ],
       },
-      { path: 'ev-stations', Component: EvStations },
+      {
+        path: 'ev-stations',
+        children: [
+          { index: true, Component: EvStations },
+          { path: 'create', Component: EvStationsCreate },
+          { path: 'update/:id', Component: EvStationsUpdate },
+        ],
+      },
       { path: 'profile', Component: Profile },
       { path: '*', Component: Dashboard },
     ],

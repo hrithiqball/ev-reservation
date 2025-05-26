@@ -41,14 +41,6 @@ export function AppSidebar() {
   const { theme } = useTheme()
   const user = useCurrentUser()
 
-  if (user?.isAdmin) {
-    items.push({
-      title: 'EV Stations',
-      url: 'ev-stations',
-      icon: HousePlug,
-    })
-  }
-
   async function handleLogout() {
     const res = await api.post('/auth/logout')
     if (res.status === 200) {
@@ -91,6 +83,16 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {user?.isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link to="ev-stations">
+                      <HousePlug className="h-4 w-4" />
+                      <span>EV Stations</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
