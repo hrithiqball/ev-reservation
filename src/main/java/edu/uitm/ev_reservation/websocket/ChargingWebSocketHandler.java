@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -22,12 +23,12 @@ public class ChargingWebSocketHandler extends TextWebSocketHandler {
   private static final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
 
   @Override
-  public void afterConnectionEstablished(WebSocketSession session) {
+  public void afterConnectionEstablished(@NonNull WebSocketSession session) {
     sessions.add(session);
   }
 
   @Override
-  public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+  public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
     sessions.remove(session);
   }
 

@@ -25,6 +25,7 @@ export function MainLayout() {
   const isOnVehicles = path.startsWith('/vehicles')
   const isOnEvStations = path.startsWith('/ev-stations')
   const isOnProfile = path.startsWith('/profile')
+  const isMonitoring = path.startsWith('/monitoring')
   const isCreate = path.includes('create')
   const isUpdate = path.includes('update')
 
@@ -34,7 +35,9 @@ export function MainLayout() {
       ? 'EV Stations'
       : isOnProfile
         ? 'Profile'
-        : ''
+        : isMonitoring && user?.isAdmin
+          ? 'Monitoring'
+          : ''
 
   const subLabel = isCreate ? 'Create' : isUpdate ? 'Update' : ''
 
@@ -68,6 +71,9 @@ export function MainLayout() {
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link to="/vehicles">Vehicles</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/monitoring">Monitoring</Link>
                             </DropdownMenuItem>
                           </>
                         ) : (

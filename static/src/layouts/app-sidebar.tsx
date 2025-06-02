@@ -19,7 +19,15 @@ import {
 } from '@/components/ui/sidebar'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { api } from '@/lib/network'
-import { Car, ChevronUp, Home, HousePlug, User2, Zap } from 'lucide-react'
+import {
+  Car,
+  ChevronUp,
+  Home,
+  HousePlug,
+  MonitorDot,
+  User2,
+  Zap,
+} from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
@@ -77,21 +85,31 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="size-4" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
               {user?.isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link to="ev-stations">
-                      <HousePlug className="h-4 w-4" />
-                      <span>EV Stations</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link to="ev-stations">
+                        <HousePlug className="size-4" />
+                        <span>EV Stations</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link to="monitoring">
+                        <MonitorDot className="size-4" />
+                        <span>Monitoring</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
               )}
             </SidebarMenu>
           </SidebarGroupContent>

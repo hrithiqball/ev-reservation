@@ -1,5 +1,7 @@
 package edu.uitm.ev_reservation.entity;
 
+import java.util.Date;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,4 +38,9 @@ public class ChargingSession {
   private int currentCharge;
 
   private boolean isCompleted;
+
+  private boolean isReserved;
+
+  private Date startTime;
+
 }

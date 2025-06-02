@@ -6,6 +6,7 @@ import { EvStations } from '@/pages/ev-stations'
 import { EvStationsCreate } from '@/pages/ev-stations-create'
 import { EvStationsUpdate } from '@/pages/ev-stations-update'
 import { Hero } from '@/pages/hero'
+import { Monitoring } from '@/pages/monitoring'
 import { Profile } from '@/pages/profile'
 import { Vehicles } from '@/pages/vehicles'
 import { VehiclesCreate } from '@/pages/vehicles-create'
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
         ],
       },
       { path: 'profile', Component: Profile },
+      { path: 'monitoring', Component: Monitoring },
       { path: '*', Component: Dashboard },
     ],
   },

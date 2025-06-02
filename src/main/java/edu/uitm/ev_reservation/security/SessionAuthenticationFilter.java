@@ -3,6 +3,7 @@ package edu.uitm.ev_reservation.security;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -19,9 +20,10 @@ import jakarta.servlet.http.HttpSession;
 public class SessionAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request,
-      HttpServletResponse response,
-      FilterChain filterChain) throws IOException, jakarta.servlet.ServletException {
+  protected void doFilterInternal(
+      @NonNull HttpServletRequest request,
+      @NonNull HttpServletResponse response,
+      @NonNull FilterChain filterChain) throws IOException, jakarta.servlet.ServletException {
 
     HttpSession session = request.getSession(false);
 
