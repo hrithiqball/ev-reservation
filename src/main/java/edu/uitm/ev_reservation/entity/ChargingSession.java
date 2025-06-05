@@ -22,22 +22,22 @@ import lombok.NoArgsConstructor;
 public class ChargingSession {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  public Long id;
 
   @ManyToOne
-  private User user;
+  public User user;
 
   @ManyToOne
-  private Vehicle vehicle;
+  public Vehicle vehicle;
 
   @ManyToOne
-  private EVStation station;
+  public EVStation station;
 
-  private int pumpNumber;
+  public int pumpNumber;
 
-  private boolean isCompleted;
+  public boolean isCompleted;
 
-  private boolean isReserved;
+  public boolean isReserved;
 
-  private Date startTime;
+  public Date startTime;
 }

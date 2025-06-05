@@ -15,6 +15,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.uitm.ev_reservation.dto.ChargingProgressMessage;
 import edu.uitm.ev_reservation.entity.ChargingSession;
 
 @Component
@@ -27,17 +28,20 @@ public class ChargingWebSocketHandler extends TextWebSocketHandler {
   @Override
   public void afterConnectionEstablished(@NonNull WebSocketSession session) {
     sessions.add(session);
+    logger.info("WebSocket connection established. Total sessions: {}", sessions.size());
   }
 
   @Override
   public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
     sessions.remove(session);
+    logger.info("WebSocket connection closed. Total sessions: {}", sessions.size());
   }
 
   public void broadcast(ChargingSession session) {
     ObjectMapper mapper = new ObjectMapper();
     try {
       String json = mapper.writeValueAsString(session);
+      logger.info("Broadcasting charging session: {}", json);
       for (WebSocketSession ws : sessions) {
         if (ws.isOpen()) {
           ws.sendMessage(new TextMessage(json));
@@ -45,6 +49,21 @@ public class ChargingWebSocketHandler extends TextWebSocketHandler {
       }
     } catch (IOException e) {
       logger.error("Failed to broadcast charging session", e);
+    }
+  }
+
+  public void broadcastChargingProgress(ChargingProgressMessage progressMessage) {
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      String json = mapper.writeValueAsString(progressMessage);
+      logger.info("Broadcasting charging progress: {}", json);
+      for (WebSocketSession ws : sessions) {
+        if (ws.isOpen()) {
+          ws.sendMessage(new TextMessage(json));
+        }
+      }
+    } catch (IOException e) {
+      logger.error("Failed to broadcast charging progress", e);
     }
   }
 }

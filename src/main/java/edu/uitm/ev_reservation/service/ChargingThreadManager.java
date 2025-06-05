@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import edu.uitm.ev_reservation.dto.ChargingProgressMessage;
 import edu.uitm.ev_reservation.entity.ChargingSession;
 import edu.uitm.ev_reservation.repository.ChargingSessionRepository;
 import edu.uitm.ev_reservation.websocket.ChargingWebSocketHandler;
@@ -71,25 +72,28 @@ public class ChargingThreadManager {
       Date currentTime = new Date();
 
       for (ChargingSession session : allSessions) {
-        String sessionKey = "session_" + session.getId();
+        if (session.isCompleted) {
+          logger.info("Session {} is already completed, skipping", session.id);
+          continue;
+        }
+        String sessionKey = "session_" + session.id;
 
-        // Check if session should start charging
         boolean shouldStartCharging = false;
 
-        if (!session.isReserved()) {
-          // Session is started (not reserved)
-          logger.info("Session {} is started (not reserved)", session.getId());
+        if (!session.isReserved) {
+          logger.info("Session {} is started (not reserved)", session.id);
           shouldStartCharging = true;
-        } else if (session.getStartTime() != null &&
-            currentTime.getTime() >= session.getStartTime().getTime()) {
-          // Current time matches or exceeds start time
-          logger.info("Session {} start time reached: {}", session.getId(), session.getStartTime());
+        } else if (session.startTime != null &&
+            currentTime.getTime() >= session.startTime.getTime()) {
+          logger.info("Session {} start time reached: {}", session.id, session.startTime);
           shouldStartCharging = true;
+        } else {
+          logger.info("Session {} is not ready to start (reserved or start time not reached)", session.id);
+          logger.info("Current time: {}, Session start time: {}", currentTime, session.startTime);
         }
 
-        if (shouldStartCharging && !sessionThreads.containsKey(sessionKey) && !session.isCompleted()) {
-          // Start new charging thread
-          logger.info("Starting charging thread for session {}", session.getId());
+        if (shouldStartCharging && !sessionThreads.containsKey(sessionKey) && !session.isCompleted) {
+          logger.info("Starting charging thread for session {}", session.id);
           Future<?> chargingTask = executorService.submit(() -> runChargingSession(session));
           sessionThreads.put(sessionKey, chargingTask);
         }
@@ -100,51 +104,71 @@ public class ChargingThreadManager {
   }
 
   private void runChargingSession(ChargingSession session) {
-    String sessionKey = "session_" + session.getId();
-    logger.info("Charging session {} started", session.getId());
+    String sessionKey = "session_" + session.id;
+    logger.info("Charging session {} started", session.id);
 
     try {
-      // Run for 10 seconds, logging each second
-      for (int i = 1; i <= 10; i++) {
-        logger.info("Session {} charging: {}", session.getId(), i);
-        System.out.println("Session " + session.getId() + " charging: " + i);
+      ChargingProgressMessage startMessage = ChargingProgressMessage.builder()
+          .sessionId(session.id)
+          .station(session.station)
+          .pump(session.pumpNumber)
+          .vehicle(session.vehicle)
+          .chargingRate(0)
+          .status("started")
+          .build();
+      chargingWebSocketHandler.broadcastChargingProgress(startMessage);
 
-        // Broadcast charging progress via websocket only (no database updates during
-        // charging)
+      for (int i = 1; i <= 10; i++) {
+        logger.info("Session {} charging: {}", session.id, i);
+        System.out.println("Session " + session.id + " charging: " + i);
+
         try {
-          // Create a simple message for websocket broadcasting
-          String progressMessage = "Session " + session.getId() + " charging: " + i + "/10";
-          chargingWebSocketHandler.broadcast(session); // Broadcast the original session
+          ChargingProgressMessage progressMessage = ChargingProgressMessage.builder()
+              .sessionId(session.id)
+              .station(session.station)
+              .pump(session.pumpNumber)
+              .vehicle(session.vehicle)
+              .chargingRate(i)
+              .status("charging")
+              .build();
+          chargingWebSocketHandler.broadcastChargingProgress(progressMessage);
         } catch (Exception e) {
           logger.error("Error broadcasting charging progress", e);
         }
 
-        Thread.sleep(1000); // Wait 1 second
+        Thread.sleep(1000);
       }
 
-      // Mark session as completed in database only at the end
       try {
-        ChargingSession updatedSession = chargingSessionRepository.findById(session.getId()).orElse(null);
+        ChargingSession updatedSession = chargingSessionRepository.findById(session.id).orElse(null);
         if (updatedSession != null) {
-          updatedSession.setCompleted(true);
+          updatedSession.isCompleted = true;
           chargingSessionRepository.save(updatedSession);
-          chargingWebSocketHandler.broadcast(updatedSession); // Broadcast completion
+
+          ChargingProgressMessage completionMessage = ChargingProgressMessage.builder()
+              .sessionId(updatedSession.id)
+              .station(updatedSession.station)
+              .pump(updatedSession.pumpNumber)
+              .vehicle(updatedSession.vehicle)
+              .chargingRate(10)
+              .status("completed")
+              .build();
+          chargingWebSocketHandler.broadcastChargingProgress(completionMessage);
         }
       } catch (Exception e) {
         logger.error("Error completing charging session", e);
       }
 
-      logger.info("Charging session {} completed", session.getId());
+      logger.info("Charging session {} completed", session.id);
 
     } catch (InterruptedException e) {
-      logger.info("Charging session {} was interrupted", session.getId());
+      logger.info("Charging session {} was interrupted", session.id);
       Thread.currentThread().interrupt();
     } catch (Exception e) {
-      logger.error("Error in charging session " + session.getId(), e);
+      logger.error("Error in charging session " + session.id, e);
     } finally {
-      // Remove from active threads
       sessionThreads.remove(sessionKey);
-      logger.info("Charging thread for session {} terminated", session.getId());
+      logger.info("Charging thread for session {} terminated", session.id);
     }
   }
 
