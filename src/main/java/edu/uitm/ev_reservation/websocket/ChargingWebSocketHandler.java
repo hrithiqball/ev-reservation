@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.uitm.ev_reservation.entity.ChargingSession;
 
+@Component
 public class ChargingWebSocketHandler extends TextWebSocketHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(ChargingWebSocketHandler.class);
@@ -32,7 +34,7 @@ public class ChargingWebSocketHandler extends TextWebSocketHandler {
     sessions.remove(session);
   }
 
-  public static void broadcast(ChargingSession session) {
+  public void broadcast(ChargingSession session) {
     ObjectMapper mapper = new ObjectMapper();
     try {
       String json = mapper.writeValueAsString(session);

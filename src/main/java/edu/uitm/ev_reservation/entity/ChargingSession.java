@@ -35,12 +35,9 @@ public class ChargingSession {
 
   private int pumpNumber;
 
-  private int currentCharge;
-
   private boolean isCompleted;
 
   private boolean isReserved;
 
   private Date startTime;
-
 }

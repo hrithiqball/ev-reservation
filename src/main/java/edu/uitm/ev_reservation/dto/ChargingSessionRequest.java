@@ -1,6 +1,6 @@
 package edu.uitm.ev_reservation.dto;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,5 +17,5 @@ public class ChargingSessionRequest {
   public Long stationId;
   public int pumpNumber;
   public boolean isReserved;
-  public LocalDateTime startTime;
+  public Date startTime;
 }

@@ -10,8 +10,15 @@ import edu.uitm.ev_reservation.websocket.ChargingWebSocketHandler;
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
+
+  private final ChargingWebSocketHandler chargingWebSocketHandler;
+
+  public WebSocketConfig(ChargingWebSocketHandler chargingWebSocketHandler) {
+    this.chargingWebSocketHandler = chargingWebSocketHandler;
+  }
+
   @Override
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(new ChargingWebSocketHandler(), "/ws/charging").setAllowedOrigins("*");
+    registry.addHandler(chargingWebSocketHandler, "/ws/charging").setAllowedOrigins("*");
   }
 }

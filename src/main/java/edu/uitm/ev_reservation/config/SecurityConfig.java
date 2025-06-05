@@ -29,6 +29,7 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/health").permitAll()
             .requestMatchers("/ws/**").permitAll()
+            .requestMatchers("/api/**").permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

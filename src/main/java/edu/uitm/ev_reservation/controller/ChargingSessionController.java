@@ -51,7 +51,6 @@ public class ChargingSessionController {
         .isReserved(request.isReserved)
         .startTime(request.startTime)
         .isCompleted(false)
-        .currentCharge(0)
         .build();
 
     chargingSessionRepository.save(session);

@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/sidebar'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { api } from '@/lib/network'
+import { cn } from '@/lib/utils'
 import {
   Car,
   ChevronUp,
@@ -28,7 +29,7 @@ import {
   User2,
   Zap,
 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useLocation } from 'react-router'
 import { toast } from 'sonner'
 
 const items = [
@@ -46,8 +47,14 @@ const items = [
 
 export function AppSidebar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { theme } = useTheme()
   const user = useCurrentUser()
+
+  // Function to check if a path is active
+  const isActivePath = (url: string) => {
+    return location.pathname.includes(url)
+  }
 
   async function handleLogout() {
     const res = await api.post('/auth/logout')
@@ -73,8 +80,10 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <Zap />
-          <span className="text-lg font-semibold">EV Charging</span>
+          <Zap className="text-primary dark:text-sky-300" />
+          <span className="text-lg text-primary dark:text-sky-300 font-semibold">
+            EV Charging
+          </span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -83,7 +92,14 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton
+                    asChild
+                    className={cn({
+                      'bg-sky-200/50 dark:bg-sky-950/50': isActivePath(
+                        item.url
+                      ),
+                    })}
+                  >
                     <Link to={item.url}>
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
@@ -92,24 +108,20 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               {user?.isAdmin && (
-                <>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="ev-stations">
-                        <HousePlug className="size-4" />
-                        <span>EV Stations</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="monitoring">
-                        <MonitorDot className="size-4" />
-                        <span>Monitoring</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    className={cn({
+                      'bg-sky-200/50 dark:bg-sky-950/50':
+                        isActivePath('ev-stations'),
+                    })}
+                  >
+                    <Link to="ev-stations">
+                      <HousePlug className="size-4" />
+                      <span>EV Stations</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
