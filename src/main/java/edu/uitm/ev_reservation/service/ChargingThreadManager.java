@@ -41,7 +41,7 @@ public class ChargingThreadManager {
 
   @PostConstruct
   public void startChargingMonitor() {
-    logger.info("Starting charging session monitor - checks every 30 seconds");
+    logger.info("Starting reserved charging session monitor - checks every 30 seconds");
     scheduledExecutorService.scheduleAtFixedRate(this::checkChargingSessions, 0, 30, TimeUnit.SECONDS);
   }
 
@@ -65,7 +65,7 @@ public class ChargingThreadManager {
   }
 
   private void checkChargingSessions() {
-    logger.info("Checking charging sessions...");
+    logger.info("Checking reserved charging sessions...");
 
     try {
       List<ChargingSession> allSessions = chargingSessionRepository.findAll();
@@ -73,7 +73,7 @@ public class ChargingThreadManager {
 
       for (ChargingSession session : allSessions) {
         if (session.isCompleted()) {
-          logger.info("Session {} is already completed, skipping", session.getId());
+          logger.info("Session {} is completed, no action needed", session.getId());
           continue;
         }
 
@@ -82,31 +82,29 @@ public class ChargingThreadManager {
           continue;
         }
 
-        String sessionKey = "session_" + session.getId();
-
-        boolean shouldStartCharging = false;
-
         if (!session.isReserved()) {
-          logger.info("Session {} is started (not reserved)", session.getId());
-          shouldStartCharging = true;
-        } else if (session.getStartTime() != null &&
-            currentTime.getTime() >= session.getStartTime().getTime()) {
-          logger.info("Session {} start time reached: {}", session.getId(), session.getStartTime());
-          shouldStartCharging = true;
-        } else {
-          logger.info("Session {} is not ready to start (reserved or start time not reached)", session.getId());
-          logger.info("Current time: {}, Session start time: {}", currentTime, session.getStartTime());
+          logger.debug("Session {} is not reserved, should have been started immediately", session.getId());
+          continue;
         }
 
-        if (shouldStartCharging && !sessionThreads.containsKey(sessionKey) && !session.isCompleted()
-            && !session.isCharging()) {
-          logger.info("Starting charging thread for session {}", session.getId());
+        String sessionKey = "session_" + session.getId();
 
-          session.setCharging(true);
-          chargingSessionRepository.save(session);
+        if (session.getStartTime() != null &&
+            currentTime.getTime() >= session.getStartTime().getTime()) {
+          logger.info("Reserved session {} start time reached: {}", session.getId(), session.getStartTime());
 
-          Future<?> chargingTask = executorService.submit(() -> runChargingSession(session));
-          sessionThreads.put(sessionKey, chargingTask);
+          if (!sessionThreads.containsKey(sessionKey) && !session.isCompleted() && !session.isCharging()) {
+            logger.info("Starting charging thread for reserved session {}", session.getId());
+
+            session.setCharging(true);
+            chargingSessionRepository.save(session);
+
+            Future<?> chargingTask = executorService.submit(() -> runChargingSession(session));
+            sessionThreads.put(sessionKey, chargingTask);
+          }
+        } else {
+          logger.debug("Reserved session {} start time not reached yet. Current time: {}, Start time: {}",
+              session.getId(), currentTime, session.getStartTime());
         }
       }
     } catch (Exception e) {
@@ -136,7 +134,7 @@ public class ChargingThreadManager {
       chargingWebSocketHandler.broadcastChargingProgress(startMessage);
 
       for (int i = 1; i <= chargingDurationSeconds; i++) {
-        int currentCharge = i * 100; // 100 units per second
+        int currentCharge = i * 100;
         logger.info("Session {} charging: {} units ({}/{}s)", session.getId(), currentCharge, i,
             chargingDurationSeconds);
         System.out.println("Session " + session.getId() + " charging: " + currentCharge + " units (" + i + "/"
@@ -233,5 +231,37 @@ public class ChargingThreadManager {
     String sessionKey = "session_" + sessionId;
     Future<?> task = sessionThreads.get(sessionKey);
     return task != null && !task.isDone();
+  }
+
+  public void startChargingSessionImmediately(ChargingSession session) {
+    if (session.isCompleted()) {
+      logger.info("Session {} is already completed, cannot start", session.getId());
+      return;
+    }
+
+    if (session.isCharging()) {
+      logger.info("Session {} is already charging, cannot start", session.getId());
+      return;
+    }
+
+    if (session.isReserved()) {
+      logger.info("Session {} is reserved, cannot start immediately", session.getId());
+      return;
+    }
+
+    String sessionKey = "session_" + session.getId();
+
+    if (sessionThreads.containsKey(sessionKey)) {
+      logger.info("Session {} already has a running thread, cannot start", session.getId());
+      return;
+    }
+
+    logger.info("Starting charging thread immediately for non-reserved session {}", session.getId());
+
+    session.setCharging(true);
+    chargingSessionRepository.save(session);
+
+    Future<?> chargingTask = executorService.submit(() -> runChargingSession(session));
+    sessionThreads.put(sessionKey, chargingTask);
   }
 }
