@@ -51,7 +51,6 @@ export function AppSidebar() {
   const { theme } = useTheme()
   const user = useCurrentUser()
 
-  // Function to check if a path is active
   const isActivePath = (url: string) => {
     return location.pathname.includes(url)
   }
@@ -108,20 +107,36 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               {user?.isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    className={cn({
-                      'bg-sky-200/50 dark:bg-sky-950/50':
-                        isActivePath('ev-stations'),
-                    })}
-                  >
-                    <Link to="ev-stations">
-                      <HousePlug className="size-4" />
-                      <span>EV Stations</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={cn({
+                        'bg-sky-200/50 dark:bg-sky-950/50':
+                          isActivePath('ev-stations'),
+                      })}
+                    >
+                      <Link to="ev-stations">
+                        <HousePlug className="size-4" />
+                        <span>EV Stations</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className={cn({
+                        'bg-sky-200/50 dark:bg-sky-950/50':
+                          isActivePath('monitoring'),
+                      })}
+                    >
+                      <Link to="monitoring">
+                        <MonitorDot className="size-4" />
+                        <span>Monitoring</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
