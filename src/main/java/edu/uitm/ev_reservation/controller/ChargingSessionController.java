@@ -2,17 +2,24 @@ package edu.uitm.ev_reservation.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.uitm.ev_reservation.dto.ChargingSessionRequest;
+import edu.uitm.ev_reservation.dto.ChargingSessionResponseDto;
 import edu.uitm.ev_reservation.entity.ChargingSession;
 import edu.uitm.ev_reservation.entity.EVStation;
 import edu.uitm.ev_reservation.entity.User;
 import edu.uitm.ev_reservation.entity.Vehicle;
+import edu.uitm.ev_reservation.mapper.DtoMapper;
 import edu.uitm.ev_reservation.repository.ChargingSessionRepository;
 import edu.uitm.ev_reservation.repository.EVStationRepository;
 import edu.uitm.ev_reservation.repository.UserRepository;
@@ -70,5 +77,27 @@ public class ChargingSessionController {
     }
 
     return ResponseEntity.ok().build();
+  }
+
+  @GetMapping
+  public ResponseEntity<Page<ChargingSessionResponseDto>> getAllChargingSessions(
+      @PageableDefault(size = 10, sort = "id") Pageable pageable,
+      @RequestParam(required = false) Long userId,
+      @RequestParam(required = false) Boolean isCompleted,
+      @RequestParam(required = false) Boolean isCharging) {
+
+    Page<ChargingSession> sessions = chargingSessionRepository.findSessionsWithFilters(
+        userId, isCompleted, isCharging, pageable);
+
+    // Convert entities to DTOs to prevent password exposure and fix serialization
+    // warning
+    Page<ChargingSessionResponseDto> sessionDtos = DtoMapper.toChargingSessionResponseDtoPage(sessions);
+
+    logger.info(
+        "Retrieved {} charging sessions (page {}, size {}) with filters: userId={}, isCompleted={}, isCharging={}",
+        sessionDtos.getNumberOfElements(), sessionDtos.getNumber(), sessionDtos.getSize(), userId, isCompleted,
+        isCharging);
+
+    return ResponseEntity.ok(sessionDtos);
   }
 }

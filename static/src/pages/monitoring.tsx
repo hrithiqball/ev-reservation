@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import {
   Wifi,
   WifiOff,
@@ -13,9 +22,14 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  ChevronLeft,
+  ChevronRight,
+  History,
 } from 'lucide-react'
+import { api } from '@/lib/network'
 import type { EvStations } from '@/types/ev-stations'
 import type { Vehicle } from '@/types/vehicle'
+import type { ChargingSessionPage } from '@/types/charging-session'
 
 interface IncomingMsg {
   station: EvStations
@@ -33,6 +47,26 @@ export function Monitoring() {
   const [sessions, setSessions] = useState<Map<string, IncomingMsg>>(new Map())
   const [ws, setWs] = useState<WebSocket | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
+
+  // Charging session history state
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 5
+
+  // React Query hook for fetching charging session history
+  const { data: chargingSessionsData, isLoading: isLoadingHistory } = useQuery({
+    queryKey: ['charging-sessions', currentPage, pageSize],
+    queryFn: async (): Promise<ChargingSessionPage> => {
+      const response = await api.get('/charging-sessions', {
+        params: {
+          isCompleted: true,
+          page: currentPage,
+          size: pageSize,
+        },
+      })
+      return response.data
+    },
+    staleTime: 30000, // 30 seconds
+  })
 
   const connectWebSocket = () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -349,6 +383,140 @@ export function Monitoring() {
             })}
           </div>
         )}
+
+        {/* Charging Session History Table */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-2">
+              <History className="w-6 h-6 text-primary" />
+              Charging Session History
+            </CardTitle>
+            <p className="text-muted-foreground">
+              Recent completed charging sessions
+            </p>
+          </CardHeader>
+          <CardContent>
+            {isLoadingHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-muted-foreground">Loading history...</span>
+              </div>
+            ) : chargingSessionsData?.content && chargingSessionsData.content.length > 0 ? (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Vehicle</TableHead>
+                      <TableHead>Station</TableHead>
+                      <TableHead>Pump</TableHead>
+                      <TableHead>Start Time</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {chargingSessionsData.content.map((session) => (
+                      <TableRow key={session.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{session.user.name}</p>
+                            <p className="text-sm text-muted-foreground">{session.user.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{session.vehicle.make} {session.vehicle.model}</p>
+                            <p className="text-sm text-muted-foreground font-mono">{session.vehicle.plateNumber}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{session.station.name}</p>
+                            <p className="text-sm text-muted-foreground">{session.station.location}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">#{session.pumpNumber}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <time className="text-sm">
+                            {new Date(session.startTime).toLocaleString()}
+                          </time>
+                        </TableCell>
+                        <TableCell>
+                          {session.isCompleted ? (
+                            <Badge variant="success" className="flex items-center gap-1 w-fit">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Completed
+                            </Badge>
+                          ) : session.isCharging ? (
+                            <Badge variant="warning" className="flex items-center gap-1 w-fit">
+                              <Zap className="w-3 h-3" />
+                              Charging
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                              <AlertCircle className="w-3 h-3" />
+                              Reserved
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination Controls */}
+                {chargingSessionsData.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
+                    <p className="text-sm text-muted-foreground">
+                      Showing {((currentPage - 1) * pageSize) + 1} to{' '}
+                      {Math.min(currentPage * pageSize, chargingSessionsData.totalElements)} of{' '}
+                      {chargingSessionsData.totalElements} sessions
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="small"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-1"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {chargingSessionsData.totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="small"
+                        onClick={() => setCurrentPage(prev => Math.min(chargingSessionsData.totalPages, prev + 1))}
+                        disabled={currentPage >= chargingSessionsData.totalPages}
+                        className="flex items-center gap-1"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
+                    <History className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-foreground">No History Available</p>
+                    <p className="text-muted-foreground">No completed charging sessions found</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
