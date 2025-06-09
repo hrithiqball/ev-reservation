@@ -11,7 +11,7 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { api } from '@/lib/network'
 import type { Vehicle } from '@/types/vehicle'
 import { useQuery } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
+import { Car, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 export function Vehicles() {
@@ -52,38 +52,43 @@ export function Vehicles() {
 
   return (
     <div className="flex flex-col space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="font-semibold text-lg">Registered vehicles</h1>
-        <Button onClick={navigateCreate}>Register New Vehicle</Button>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Make</TableHead>
-            <TableHead>Model</TableHead>
-            <TableHead>Plate Number</TableHead>
-            <TableHead>Battery Capacity</TableHead>
-            {user?.isAdmin && <TableHead>Owner</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((vehicle) => (
-            <TableRow
-              key={vehicle.id}
-              onClick={() => navigateUpdate(vehicle.id)}
-              className="cursor-pointer hover:bg-sky-100 dark:hover:bg-sky-950"
-            >
-              <TableCell>{vehicle.make}</TableCell>
-              <TableCell>{vehicle.model}</TableCell>
-              <TableCell>{vehicle.plateNumber}</TableCell>
-              <TableCell>{vehicle.batteryCapacity}</TableCell>
-              {user?.isAdmin && (
-                <TableCell>{vehicle?.owner?.name ?? '-'}</TableCell>
-              )}
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="font-semibold text-lg">Registered vehicles</h1>
+          <Button onClick={navigateCreate} variant="outline">
+            <Car />
+            Register Vehicle
+          </Button>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Make</TableHead>
+              <TableHead>Model</TableHead>
+              <TableHead>Plate Number</TableHead>
+              <TableHead>Battery Capacity</TableHead>
+              {user?.isAdmin && <TableHead>Owner</TableHead>}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {data.map((vehicle) => (
+              <TableRow
+                key={vehicle.id}
+                onClick={() => navigateUpdate(vehicle.id)}
+                className="cursor-pointer hover:bg-sky-100 dark:hover:bg-sky-950"
+              >
+                <TableCell>{vehicle.make}</TableCell>
+                <TableCell>{vehicle.model}</TableCell>
+                <TableCell>{vehicle.plateNumber}</TableCell>
+                <TableCell>{vehicle.batteryCapacity}</TableCell>
+                {user?.isAdmin && (
+                  <TableCell>{vehicle?.owner?.name ?? '-'}</TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }

@@ -80,8 +80,8 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
           <Zap className="text-primary dark:text-sky-300" />
-          <span className="text-lg text-primary dark:text-sky-300 font-semibold">
-            EV Charging
+          <span className="text-sm text-primary dark:text-sky-300 font-semibold">
+            EV Charging Reservation
           </span>
         </div>
       </SidebarHeader>
@@ -144,7 +144,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-4">
+          <SidebarMenuItem className="flex items-center gap-2">
             <ModeToggle />
             <span className="text-sm">
               {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}

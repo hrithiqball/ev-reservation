@@ -1,8 +1,10 @@
 package edu.uitm.ev_reservation.mapper;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 import edu.uitm.ev_reservation.dto.ChargingSessionResponseDto;
 import edu.uitm.ev_reservation.dto.EVStationResponseDto;
@@ -12,9 +14,6 @@ import edu.uitm.ev_reservation.entity.ChargingSession;
 import edu.uitm.ev_reservation.entity.EVStation;
 import edu.uitm.ev_reservation.entity.User;
 import edu.uitm.ev_reservation.entity.Vehicle;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Utility class for mapping entities to DTOs

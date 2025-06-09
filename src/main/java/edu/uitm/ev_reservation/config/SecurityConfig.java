@@ -29,7 +29,7 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/health").permitAll()
             .requestMatchers("/ws/**").permitAll()
-            .requestMatchers("/api/**").permitAll()
+            .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/*.js", "/*.css", "/*.ico", "/*.svg", "/*.png", "/*.jpg", "/*.jpeg").permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

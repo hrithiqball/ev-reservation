@@ -1,4 +1,5 @@
 import { LoginForm } from '@/components/login-form'
+import { BorderBeam } from '@/components/magicui/border-beam'
 import { RegisterForm } from '@/components/register-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -7,7 +8,7 @@ import { Link } from 'react-router'
 
 export function Auth() {
   return (
-    <Card className="min-w-md">
+    <Card className="relative min-w-md overflow-hidden">
       <CardHeader>
         <CardTitle>
           <Link className="flex items-center gap-2" to="/">
@@ -30,6 +31,7 @@ export function Auth() {
           </TabsContent>
         </Tabs>
       </CardContent>
+      <BorderBeam duration={8} size={100} />
     </Card>
   )
 }

@@ -49,68 +49,70 @@ export function VehiclesCreate() {
   }
 
   return (
-    <Form {...form}>
-      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-        <FormField
-          control={form.control}
-          name="make"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Make</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter vehicle make" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="model"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Model</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter vehicle model" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="plateNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Plate Number</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter plate number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="batteryCapacity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Battery Capacity</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter battery capacity"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex justify-end">
-          <Button type="submit">Register</Button>
-        </div>
-      </form>
-    </Form>
+    <div className="container mx-auto p-6 space-y-6">
+      <Form {...form}>
+        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <FormField
+            control={form.control}
+            name="make"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Make</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter vehicle make" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter vehicle model" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="plateNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Plate Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter plate number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="batteryCapacity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Battery Capacity</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter battery capacity"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex justify-end">
+            <Button type="submit">Register</Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   )
 }
