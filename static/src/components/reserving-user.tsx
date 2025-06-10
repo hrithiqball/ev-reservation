@@ -68,7 +68,7 @@ export function ReservingUser() {
     }
 
     const newWs = new WebSocket(
-      `ws://${import.meta.env.VITE_SERVER_DOMAIN}/ws/charging`
+      `${import.meta.env.VITE_WEBSOCKET_URL}/ws/charging`
     )
 
     newWs.onopen = () => {
