@@ -1,0 +1,12 @@
+# Ignore files that shouldn't be copied to Docker context
+target/
+.git/
+.gitignore
+.vscode/
+.github/
+*.md
+.env
+docker-compose.yml
+static/node_modules/
+static/dist/
+*.log
