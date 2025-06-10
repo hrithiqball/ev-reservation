@@ -74,7 +74,9 @@ export function Monitoring() {
     setIsConnecting(true)
     setConnectionStatus('Connecting...')
 
-    const newWs = new WebSocket('ws://localhost:8080/ws/charging')
+    const newWs = new WebSocket(
+      `ws://${import.meta.env.VITE_SERVER_DOMAIN}/ws/charging`
+    )
 
     newWs.onopen = () => {
       setConnectionStatus('Connected')

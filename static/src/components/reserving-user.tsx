@@ -67,7 +67,9 @@ export function ReservingUser() {
       return
     }
 
-    const newWs = new WebSocket('ws://localhost:8080/ws/charging')
+    const newWs = new WebSocket(
+      `ws://${import.meta.env.VITE_SERVER_DOMAIN}/ws/charging`
+    )
 
     newWs.onopen = () => {
       newWs.send('Hello from client!')

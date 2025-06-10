@@ -15,7 +15,7 @@ public class WebConfig {
       @Override
       public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOrigins("*")
+            .allowedOrigins("ev-reservation.pixcel.org")
             .allowedMethods("*")
             .allowedHeaders("*")
             .exposedHeaders("Set-Cookie")

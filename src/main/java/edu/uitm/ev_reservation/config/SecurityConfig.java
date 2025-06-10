@@ -32,8 +32,8 @@ public class SecurityConfig {
             .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/*.js", "/*.css", "/*.ico", "/*.svg",
                 "/*.png", "/*.jpg", "/*.jpeg")
             .permitAll()
-            .requestMatchers("*").permitAll()
-            .anyRequest().authenticated())
+            .anyRequest().authenticated()
+            .anyRequest().permitAll())
         .addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
