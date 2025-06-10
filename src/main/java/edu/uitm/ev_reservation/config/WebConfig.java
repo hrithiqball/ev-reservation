@@ -15,11 +15,11 @@ public class WebConfig {
       @Override
       public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOrigins("ev-reservation.pixcel.org")
+            .allowedOrigins("*")
             .allowedMethods("*")
             .allowedHeaders("*")
             .exposedHeaders("Set-Cookie")
-            .allowCredentials(true)
+            .allowCredentials(false)
             .maxAge(3600);
       }
     };

@@ -29,8 +29,9 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/health").permitAll()
             .requestMatchers("/ws/**").permitAll()
-            .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/*.js", "/*.css", "/*.ico", "/*.svg",
-                "/*.png", "/*.jpg", "/*.jpeg")
+            .requestMatchers("/", "/index.html", "/static/**", "/assets/**",
+                "/*.js", "/*.css", "/*.ico", "/*.svg", "/*.png", "/*.jpg", "/*.jpeg",
+                "/favicon.ico", "/robots.txt", "/manifest.json")
             .permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
