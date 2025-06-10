@@ -25,7 +25,7 @@ FROM eclipse-temurin:17.0.15_6-jre
 WORKDIR /app
 
 # Copy the jar file from the build stage
-COPY --from=0 /app/target/ev-reservation-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=0 /app/target/ev-reservation-1.0.0.jar app.jar
 
 # Expose the port that Spring Boot runs on
 EXPOSE 8080
