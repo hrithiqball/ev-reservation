@@ -6,10 +6,19 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import edu.uitm.ev_reservation.security.SessionAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+  private final SessionAuthenticationFilter sessionAuthenticationFilter;
+
+  public SecurityConfig(SessionAuthenticationFilter sessionAuthenticationFilter) {
+    this.sessionAuthenticationFilter = sessionAuthenticationFilter;
+  }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -17,7 +26,15 @@ public class SecurityConfig {
         .cors(Customizer.withDefaults())
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
-            .anyRequest().permitAll());
+            .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/api/health").permitAll()
+            .requestMatchers("/ws/**").permitAll()
+            .requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/*.js", "/*.css", "/*.ico", "/*.svg",
+                "/*.png", "/*.jpg", "/*.jpeg")
+            .permitAll()
+            .requestMatchers("*").permitAll()
+            .anyRequest().authenticated())
+        .addFilterBefore(sessionAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
