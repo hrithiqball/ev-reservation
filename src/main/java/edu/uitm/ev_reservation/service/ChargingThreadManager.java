@@ -4,11 +4,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +21,9 @@ public class ChargingThreadManager {
 
   private static final Logger logger = LoggerFactory.getLogger(ChargingThreadManager.class);
 
-  private final Map<String, Future<?>> sessionThreads = new ConcurrentHashMap<>();
-  private final ExecutorService executorService = Executors.newCachedThreadPool();
-  private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+  private final Map<String, Thread> sessionThreads = new ConcurrentHashMap<>();
+  private Thread monitorThread;
+  private volatile boolean running = true;
 
   private final ChargingWebSocketHandler chargingWebSocketHandler;
   private final ChargingSessionRepository chargingSessionRepository;
@@ -42,36 +37,72 @@ public class ChargingThreadManager {
   @PostConstruct
   public void startChargingMonitor() {
     logger.info("Starting reserved charging session monitor - checks every 30 seconds");
-    scheduledExecutorService.scheduleAtFixedRate(this::checkChargingSessions, 0, 30, TimeUnit.SECONDS);
+
+    // Create a monitor thread that extends Thread class
+    monitorThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (running) {
+          try {
+            checkChargingSessions();
+            Thread.sleep(30000); // Sleep for 30 seconds
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.info("Monitor thread interrupted");
+            break;
+          } catch (Exception e) {
+            logger.error("Error in monitor thread", e);
+          }
+        }
+      }
+    });
+
+    monitorThread.setName("ChargingSessionMonitor");
+    monitorThread.start();
   }
 
   @PreDestroy
   public void shutdown() {
     logger.info("Shutting down charging thread manager");
-    scheduledExecutorService.shutdown();
-    executorService.shutdown();
-    try {
-      if (!scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
-        scheduledExecutorService.shutdownNow();
+    running = false;
+
+    // Interrupt monitor thread
+    if (monitorThread != null && monitorThread.isAlive()) {
+      monitorThread.interrupt();
+      try {
+        monitorThread.join(5000); // Wait up to 5 seconds for thread to finish
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        logger.warn("Interrupted while waiting for monitor thread to finish");
       }
-      if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-        executorService.shutdownNow();
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      scheduledExecutorService.shutdownNow();
-      executorService.shutdownNow();
     }
+
+    // Stop all charging session threads
+    Thread[] threads = sessionThreads.values().toArray(new Thread[0]);
+    for (int i = 0; i < threads.length; i++) {
+      Thread thread = threads[i];
+      if (thread != null && thread.isAlive()) {
+        thread.interrupt();
+        try {
+          thread.join(2000); // Wait up to 2 seconds for each thread to finish
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          logger.warn("Interrupted while waiting for charging thread to finish");
+        }
+      }
+    }
+    sessionThreads.clear();
   }
 
   private void checkChargingSessions() {
-    logger.info("Checking reserved charging sessions...");
+    logger.info("Checking reserved charging sessions...111");
 
     try {
       List<ChargingSession> allSessions = chargingSessionRepository.findAll();
       Date currentTime = new Date();
 
-      for (ChargingSession session : allSessions) {
+      for (int i = 0; i < allSessions.size(); i++) {
+        ChargingSession session = allSessions.get(i);
         if (session.isCompleted()) {
           logger.info("Session {} is completed, no action needed", session.getId());
           continue;
@@ -99,8 +130,11 @@ public class ChargingThreadManager {
             session.setCharging(true);
             chargingSessionRepository.save(session);
 
-            Future<?> chargingTask = executorService.submit(() -> runChargingSession(session));
-            sessionThreads.put(sessionKey, chargingTask);
+            // Create and start a new Thread for charging session
+            Thread chargingThread = new Thread(new ChargingSessionRunnable(session));
+            chargingThread.setName("ChargingSession-" + session.getId());
+            sessionThreads.put(sessionKey, chargingThread);
+            chargingThread.start();
           }
         } else {
           logger.debug("Reserved session {} start time not reached yet. Current time: {}, Start time: {}",
@@ -109,6 +143,20 @@ public class ChargingThreadManager {
       }
     } catch (Exception e) {
       logger.error("Error checking charging sessions", e);
+    }
+  }
+
+  // Inner class that implements Runnable for charging session threads
+  private class ChargingSessionRunnable implements Runnable {
+    private final ChargingSession session;
+
+    public ChargingSessionRunnable(ChargingSession session) {
+      this.session = session;
+    }
+
+    @Override
+    public void run() {
+      runChargingSession(session);
     }
   }
 
@@ -219,18 +267,18 @@ public class ChargingThreadManager {
 
   public void stopChargingSession(Long sessionId) {
     String sessionKey = "session_" + sessionId;
-    Future<?> task = sessionThreads.get(sessionKey);
-    if (task != null) {
+    Thread thread = sessionThreads.get(sessionKey);
+    if (thread != null && thread.isAlive()) {
       logger.info("Manually stopping charging session {}", sessionId);
-      task.cancel(true);
+      thread.interrupt();
       sessionThreads.remove(sessionKey);
     }
   }
 
   public boolean isSessionCharging(Long sessionId) {
     String sessionKey = "session_" + sessionId;
-    Future<?> task = sessionThreads.get(sessionKey);
-    return task != null && !task.isDone();
+    Thread thread = sessionThreads.get(sessionKey);
+    return thread != null && thread.isAlive();
   }
 
   public void startChargingSessionImmediately(ChargingSession session) {
@@ -261,7 +309,10 @@ public class ChargingThreadManager {
     session.setCharging(true);
     chargingSessionRepository.save(session);
 
-    Future<?> chargingTask = executorService.submit(() -> runChargingSession(session));
-    sessionThreads.put(sessionKey, chargingTask);
+    // Create and start a new Thread for immediate charging session
+    Thread chargingThread = new Thread(new ChargingSessionRunnable(session));
+    chargingThread.setName("ChargingSession-" + session.getId());
+    sessionThreads.put(sessionKey, chargingThread);
+    chargingThread.start();
   }
 }
